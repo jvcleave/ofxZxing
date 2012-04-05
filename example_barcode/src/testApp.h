@@ -11,7 +11,7 @@ public:
 	void draw();
 	
 	ofxZxing::Result result;
-	ofImage logo;
 	ofVideoGrabber cam;
 	float lastFound;
+	string output;
 };

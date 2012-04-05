@@ -3,41 +3,38 @@
 void testApp::setup() {
 	ofSetVerticalSync(true);
 	cam.initGrabber(640, 480);
-	logo.loadImage("of-80s.png");
+	output = "NO RESULT";
 }
 
 void testApp::update() {
 	cam.update();
-	if(cam.isFrameNew()) {
-		ofxZxing::Result curResult = ofxZxing::decode(cam.getPixelsRef());
+	if(cam.isFrameNew()) 
+	{
+		ofxZxing::Result curResult = ofxZxing::decodeBarCode(cam.getPixelsRef());
 		float curTime = ofGetElapsedTimef();
 		if(curResult.getFound()) { // only update if we found something, avoid flickering
 			result = curResult;
+			output = result.getText();
 			lastFound = curTime;
 		} else if(curTime - lastFound > 1) {  // if we haven't found anything after a second
 			result = curResult; // then update anyway
+			output = "NO RESULT";
 		}
 	}
+	
+	ofSetWindowTitle(output);
 }
 
 void testApp::draw() {
 	ofSetColor(255);
-	if(result.getFound()) {
-		cam.draw(0, 0);
+	cam.draw(0, 0);
+	if(result.getFound()) 
+	{
 		
 		float rotation = result.getRotation();
 		ofVec2f position = result.getScreenPosition();
-		float size = result.getScreenSize() / logo.getWidth();
+		vector<ofVec2f> &points = result.getPoints();
+		ofDrawBitmapStringHighlight(result.getText(), points[0]);
 		
-		ofPushMatrix();
-		ofTranslate(position);
-		ofRotate(rotation);
-		ofScale(size, size, size);
-		logo.draw(-logo.getWidth() / 2, -logo.getHeight() / 2);
-		ofPopMatrix();
-		
-		result.draw();		
-	} else {
-		cam.draw(0, 0);
 	}
 }
