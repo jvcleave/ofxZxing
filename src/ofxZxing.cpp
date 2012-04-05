@@ -6,6 +6,7 @@
 #include <zxing/common/GlobalHistogramBinarizer.h>
 #include <zxing/common/HybridBinarizer.h>
 #include <zxing/Exception.h>
+#include <zxing/MultiFormatReader.h>
 
 namespace ofxZxing {
 
@@ -44,5 +45,34 @@ Result decode(ofPixels& pixels, bool adaptive = true) {
 		return Result();
   }
 }
-
+	
+Result decodeBarCode(ofPixels& pixels)
+{
+	try {
+		Ref<ofPixelsBitmapSource> source(new ofPixelsBitmapSource(pixels));
+		Ref<Binarizer> binarizer(NULL);
+		binarizer = new HybridBinarizer(source);
+		Ref<BinaryBitmap> image(new BinaryBitmap(binarizer));
+		MultiFormatReader reader;
+		DecodeHints hints;
+		hints.addFormat(BarcodeFormat_UPC_A);
+		hints.setTryHarder(true);
+		Ref<zxing::Result> result(reader.decode(image, hints));
+		
+		string text = result->getText()->getText();
+		vector<ofVec2f> points;
+		vector< Ref<ResultPoint> > resultPoints = result->getResultPoints();
+		for(int i = 0; i < resultPoints.size(); i++) {
+			Ref<ResultPoint> cur = resultPoints[i];
+			points.push_back(ofVec2f(cur->getX(), cur->getY()));
+		}
+		return Result(text, points);
+	} catch (zxing::Exception& e) {
+		//cerr << "Error: " << e.what() << endl;
+		return Result();
+	}
 }
+	
+}
+
+		
